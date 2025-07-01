@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: 'SVS model to demo'
+        description: 'SVS checkpoint name to demo'
         required: true
         default: 'svs_popcs'
   push:
@@ -17,61 +17,32 @@ on:
 jobs:
   demo:
     runs-on: ubuntu-latest
-    env:
-      PYTHONUNBUFFERED: 1
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            python3-dev \
-            libsndfile1 \
-            ffmpeg \
-            google-cloud-cli
+      - name: Build Docker image
+        run: docker build -t diffsinger-demo .
 
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: 3.8
-          auto-activate-base: true
-
-      - name: Create & activate conda env
-        shell: bash -l {0}
+      - name: Run inference in container
         run: |
-          conda create -y -n diffsingerenv python=3.8 numpy cython pip
-          conda activate diffsingerenv
-
-      - name: Install remaining Python deps
-        shell: bash -l {0}
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install --no-build-isolation -r requirements_2080.txt
-
-      - name: Download pretrained checkpoint
-        shell: bash -l {0}
-        run: |
-          mkdir -p checkpoints
-          gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth \
-            checkpoints/
-
-      - name: Run SVS inference
-        shell: bash -l {0}
-        run: |
-          python inference/svs/inference.py \
-            --config configs/svs/popcs/svs.yaml \
-            --checkpoint checkpoints/${{ inputs.model }}.pth \
-            --output outputs/demo.wav
+          docker run --rm \
+            -v "${{ github.workspace }}/outputs":/workspace/outputs \
+            diffsinger-demo \
+            bash -lc "mkdir -p checkpoints && \
+                      gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth checkpoints/ && \
+                      python inference/svs/inference.py \
+                        --config configs/svs/popcs/svs.yaml \
+                        --checkpoint checkpoints/${{ inputs.model }}.pth \
+                        --output outputs/demo.wav"
 
       - name: Upload demo artifact
         uses: actions/upload-artifact@v4
         with:
           name: demo-waveform
           path: outputs/demo.wav
+
 
 
 
