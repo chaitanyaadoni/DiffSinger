@@ -1,6 +1,8 @@
+# Dockerfile
+
 FROM continuumio/miniconda3:latest
 
-# 1) System dependencies
+# 1) System deps
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
@@ -13,7 +15,7 @@ RUN apt-get update && \
 # 2) Copy pip requirements
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env & pre-install the big C-extensions + Pillow
+# 3) Create conda env & pre-install every C-ext, including Pillow
 RUN conda create -n diffsingerenv \
       python=3.8 \
       numpy \
@@ -31,13 +33,10 @@ RUN conda create -n diffsingerenv \
       -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Use that env for the rest of the build
+# 4) Run everything in that env from now on
 SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
 
-# 5) Debug: peek at what pip will see
-RUN head -n20 /tmp/requirements.txt
-
-# 6) Strip out the conda-provided packages (incl. pillow)
+# 5) Strip out only the conda-provided lines from pip’s list
 RUN sed -i '\
   /^audioread==/d; \
   /^h5py==/d; \
@@ -51,12 +50,12 @@ RUN sed -i '\
   /^pillow==/d' \
   /tmp/requirements.txt
 
-# 7) Now pip-install only the pure-Python leftovers
+# 6) Install what’s left (pure-Python only)
 RUN pip install --no-deps -r /tmp/requirements.txt
 
-# 8) Copy your code & set workdir
+# 7) Copy code & set workdir
 WORKDIR /workspace
 COPY . /workspace
 
-# 9) Default to bash
+# 8) Default entrypoint
 ENTRYPOINT ["bash","-lc"]
