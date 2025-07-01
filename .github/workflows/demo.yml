@@ -17,52 +17,46 @@ on:
 jobs:
   demo:
     runs-on: ubuntu-latest
-
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev libsndfile1 ffmpeg
+          sudo apt-get install -y build-essential \
+                                  libsndfile1 \
+                                  ffmpeg
 
-      - name: Cache pip
-        uses: actions/cache@v3
+      - name: Set up Miniconda (with mamba)
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements_2080.txt') }}
+          python-version: 3.8
+          use-mamba: true
+          auto-activate-base: false
 
-      - name: Create & activate virtualenv
+      - name: Create & activate Conda env
+        shell: bash -l {0}
         run: |
-          python -m venv venv
-          source venv/bin/activate
-
-      - name: Upgrade pip & pre-install NumPy/Cython
-        run: |
-          source venv/bin/activate
-          pip install --upgrade pip setuptools wheel
-          pip install numpy==1.23.5 cython
+          mamba create -n diffsingerenv python=3.8 numpy cython pip -y
+          conda activate diffsingerenv
 
       - name: Install remaining Python deps
+        shell: bash -l {0}
         run: |
-          source venv/bin/activate
-          pip install -r requirements_2080.txt
+          pip install --upgrade pip setuptools wheel
+          pip install --no-build-isolation -r requirements_2080.txt
 
       - name: Download pretrained checkpoint
+        shell: bash -l {0}
         run: |
-          source venv/bin/activate
           mkdir -p checkpoints
           gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth checkpoints/
 
       - name: Run SVS inference
+        shell: bash -l {0}
         run: |
-          source venv/bin/activate
           python inference/svs/inference.py \
             --config configs/svs/popcs/svs.yaml \
             --checkpoint checkpoints/${{ inputs.model }}.pth \
@@ -73,6 +67,7 @@ jobs:
         with:
           name: demo-waveform
           path: outputs/demo.wav
+
 
 
 
