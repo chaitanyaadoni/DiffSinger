@@ -1,5 +1,8 @@
-# 1) System deps
+# Dockerfile
+
 FROM continuumio/miniconda3:latest
+
+# 1) System deps
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
@@ -12,7 +15,7 @@ RUN apt-get update && \
 # 2) Copy pip requirements
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env & install heavy C‐exts via conda-forge
+# 3) Create conda env & pre-install heavy C-extensions
 RUN conda create -n diffsingerenv \
       python=3.8 \
       numpy \
@@ -25,17 +28,16 @@ RUN conda create -n diffsingerenv \
       google-auth-oauthlib=0.4.2 \
       matplotlib=3.3.3 \
       llvmlite=0.31.0 \
-      music21=5.7.2 \
       -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Use that env for all following RUNs
-SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
+# 4) Use that env for next steps
+SHELL ["conda", "run", "-n", "diffsingerenv", "/bin/bash", "-lc"]
 
-# 5) Debug: peek at the top of requirements
-RUN head -n 20 /tmp/requirements.txt
+# 5) Debug: peek at top of requirements
+RUN head -n20 /tmp/requirements.txt
 
-# 6) Strip out only the conda‐provided packages
+# 6) Strip only the conda-installed items
 RUN sed -i '\
   /^audioread==/d; \
   /^grpcio==/d; \
@@ -44,14 +46,13 @@ RUN sed -i '\
   /^h5py==/d; \
   /^matplotlib==/d; \
   /^llvmlite==/d; \
-  /^numpy==/d; \
-  /^music21==/d' \
+  /^numpy==/d' \
   /tmp/requirements.txt
 
-# 7) Install the rest (pure‐Python)
+# 7) Install the remaining packages (including music21 & miditoolkit)
 RUN pip install --no-build-isolation --no-deps -r /tmp/requirements.txt
 
-# 8) Copy your code & set workdir
+# 8) Copy code & set workdir
 WORKDIR /workspace
 COPY . /workspace
 
