@@ -17,29 +17,28 @@ on:
 jobs:
   demo:
     runs-on: ubuntu-latest
-    steps:
+    env:
+      PYTHONUNBUFFERED: 1
 
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential \
-                                  libsndfile1 \
-                                  ffmpeg
+          sudo apt-get install -y build-essential python3-dev libsndfile1 ffmpeg google-cloud-sdk
 
-      - name: Set up Miniconda (with mamba)
+      - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: 3.8
-          use-mamba: true
-          auto-activate-base: false
+          auto-activate-base: true
 
-      - name: Create & activate Conda env
+      - name: Create & activate conda env
         shell: bash -l {0}
         run: |
-          mamba create -n diffsingerenv python=3.8 numpy cython pip -y
+          conda create -y -n diffsingerenv python=3.8 numpy cython pip
           conda activate diffsingerenv
 
       - name: Install remaining Python deps
@@ -67,6 +66,7 @@ jobs:
         with:
           name: demo-waveform
           path: outputs/demo.wav
+
 
 
 
