@@ -3,45 +3,43 @@ name: DiffSinger Demo Pipeline
 on:
   workflow_dispatch:
     inputs:
-      model:             # choose model preset
+      model:
         description: 'SVS model to demo'
         required: true
         default: 'svs_popcs'
-
   push:
     branches:
       - main
-      - ci/demo-pipeline   # run on changes to this branch
+      - ci/demo-pipeline
     tags:
-      - 'v*'                # run on new tags like v1.0, v2.1, etc.
-
+      - 'v*'
 
 jobs:
   demo:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout repository  
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.8  
-        uses: actions/setup-python@v4  
-        with:  
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
           python-version: '3.8'
 
-      - name: Install dependencies  
+      - name: Install dependencies
         run: |
           python -m venv venv
           . venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements_2080.txt
 
-      - name: Download pretrained checkpoint  
+      - name: Download pretrained checkpoint
         run: |
           mkdir -p checkpoints
           gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth checkpoints/
 
-      - name: Run SVS inference  
+      - name: Run SVS inference
         run: |
           . venv/bin/activate
           python inference/svs/inference.py \
@@ -49,8 +47,9 @@ jobs:
             --checkpoint checkpoints/${{ inputs.model }}.pth \
             --output outputs/demo.wav
 
-      - name: Upload demo artifact  
-        uses: actions/upload-artifact@v3  
-        with:  
-          name: demo-waveform  
+      - name: Upload demo artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-waveform
           path: outputs/demo.wav
+
