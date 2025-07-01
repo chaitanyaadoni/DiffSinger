@@ -2,4 +2,5 @@
 *.pyc
 __pycache__/
 *.sh
-local_tools/
+local_tools/build.log
+wheel.log
