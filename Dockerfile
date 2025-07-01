@@ -2,7 +2,7 @@
 
 FROM continuumio/miniconda3:latest
 
-# 1) System deps
+# 1) Install system libraries
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
@@ -15,8 +15,11 @@ RUN apt-get update && \
 # 2) Copy pip requirements
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env & pre-install every C-ext, including Pillow
-RUN conda create -n diffsingerenv \
+# 3) Install mamba into the base env for faster, more reliable solves
+RUN conda install --quiet --yes -n base -c conda-forge mamba
+
+# 4) Create the conda env & pre-install all heavy C-extensions with mamba
+RUN mamba create -n diffsingerenv \
       python=3.8 \
       numpy \
       cython \
@@ -33,10 +36,13 @@ RUN conda create -n diffsingerenv \
       -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Run everything in that env from now on
+# 5) Switch into that env for all following RUNs
 SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
 
-# 5) Strip out only the conda-provided lines from pip’s list
+# 6) (Optional) Debug: peek at the first 20 lines of requirements
+RUN head -n20 /tmp/requirements.txt
+
+# 7) Strip out the conda-managed packages and numpy/pandas/pillow lines
 RUN sed -i '\
   /^audioread==/d; \
   /^h5py==/d; \
@@ -50,12 +56,12 @@ RUN sed -i '\
   /^pillow==/d' \
   /tmp/requirements.txt
 
-# 6) Install what’s left (pure-Python only)
+# 8) Install the remaining pure-Python dependencies
 RUN pip install --no-deps -r /tmp/requirements.txt
 
-# 7) Copy code & set workdir
+# 9) Copy your code & set the working directory
 WORKDIR /workspace
 COPY . /workspace
 
-# 8) Default entrypoint
+# 10) Default entrypoint
 ENTRYPOINT ["bash","-lc"]
