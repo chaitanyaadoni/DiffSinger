@@ -1,0 +1,7 @@
+on:
+  workflow_dispatch:
+    inputs: {}
+  push:
+    branches:
+      - main
+      - ci/demo-pipeline   # add your branch name here if using push triggers
