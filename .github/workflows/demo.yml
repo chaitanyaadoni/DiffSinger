@@ -27,7 +27,12 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev libsndfile1 ffmpeg google-cloud-sdk
+          sudo apt-get install -y \
+            build-essential \
+            python3-dev \
+            libsndfile1 \
+            ffmpeg \
+            google-cloud-cli
 
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
@@ -51,7 +56,8 @@ jobs:
         shell: bash -l {0}
         run: |
           mkdir -p checkpoints
-          gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth checkpoints/
+          gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth \
+            checkpoints/
 
       - name: Run SVS inference
         shell: bash -l {0}
