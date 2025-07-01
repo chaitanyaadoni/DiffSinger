@@ -17,9 +17,11 @@ on:
 jobs:
   demo:
     runs-on: ubuntu-latest
+    env:
+      PYTHONUNBUFFERED: '1'
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Build Docker image
@@ -30,18 +32,24 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}/outputs":/workspace/outputs \
             diffsinger-demo \
-            bash -lc "mkdir -p checkpoints && \
-                      gsutil cp gs://diffsinger/checkpoints/${{ inputs.model }}.pth checkpoints/ && \
-                      python inference/svs/inference.py \
-                        --config configs/svs/popcs/svs.yaml \
-                        --checkpoint checkpoints/${{ inputs.model }}.pth \
-                        --output outputs/demo.wav"
+            bash -lc "\
+              mkdir -p checkpoints && \
+              echo 'Downloading checkpoint via HTTP…' && \
+              curl -L \
+                -o checkpoints/${{ inputs.model }}.pth \
+                https://github.com/openvpi/DiffSinger/releases/download/v0.1/${{ inputs.model }}.pth && \
+              python inference/svs/inference.py \
+                --config configs/svs/popcs/svs.yaml \
+                --checkpoint checkpoints/${{ inputs.model }}.pth \
+                --output outputs/demo.wav\
+            "
 
       - name: Upload demo artifact
         uses: actions/upload-artifact@v4
         with:
           name: demo-waveform
           path: outputs/demo.wav
+
 
 
 
