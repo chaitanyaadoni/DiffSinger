@@ -1,8 +1,6 @@
-# Dockerfile
-
 FROM continuumio/miniconda3:latest
 
-# 1) Install system libraries
+# 1) System deps
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
@@ -15,7 +13,7 @@ RUN apt-get update && \
 # 2) Copy pip requirements
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env & install heavy C-extensions (that exist on conda-forge)
+# 3) Create conda env & pre-install heavy C-extensions + pandas
 RUN conda create -n diffsingerenv \
       python=3.8 \
       numpy \
@@ -28,16 +26,17 @@ RUN conda create -n diffsingerenv \
       google-auth-oauthlib=0.4.2 \
       matplotlib=3.3.3 \
       llvmlite=0.31.0 \
+      pandas=1.2.0 \
       -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Switch into that env for all further RUNs
-SHELL ["conda", "run", "-n", "diffsingerenv", "/bin/bash", "-lc"]
+# 4) Use the new env
+SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
 
-# 5) Optional debug: see what’s in the requirements
+# 5) Debug: peek at pip list
 RUN head -n20 /tmp/requirements.txt
 
-# 6) Strip out only the conda-installed packages & NumPy
+# 6) Strip out all conda-provided packages (incl. pandas)
 RUN sed -i '\
   /^audioread==/d; \
   /^h5py==/d; \
@@ -46,13 +45,14 @@ RUN sed -i '\
   /^google-auth-oauthlib==/d; \
   /^matplotlib==/d; \
   /^llvmlite==/d; \
-  /^numpy==/d' \
+  /^numpy==/d; \
+  /^pandas==/d' \
   /tmp/requirements.txt
 
-# 7) Install the remaining (pure-Python) deps via pip
+# 7) Pip-install the remainder (pure-Python only)
 RUN pip install --no-build-isolation --no-deps -r /tmp/requirements.txt
 
-# 8) Copy your code & set workdir
+# 8) Copy code & set workdir
 WORKDIR /workspace
 COPY . /workspace
 
