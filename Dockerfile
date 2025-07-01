@@ -1,45 +1,45 @@
-# Dockerfile
-
 FROM continuumio/miniconda3:latest
 
-# 1) Install system libraries & curl
+# 1) Install system libs & curl
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
       libsndfile1 \
       libsndfile-dev \
       libhdf5-dev \
-      pkg-config \
+      libffi-dev \
+      libssl-dev \
       ffmpeg \
       curl && \
     rm -rf /var/lib/apt/lists/*
 
-
-
-# 2) Copy requirements for layer caching
+# 2) Copy requirements early for caching
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env with python, core deps & audioread from conda-forge
+# 3) Create conda env & install heavy deps via conda-forge
 RUN conda create -n diffsingerenv \
       python=3.8 \
       numpy \
       cython \
       pip \
-      -y && \
-    # Install audioread via conda-forge to avoid pip build errors
-    conda install -n diffsingerenv -c conda-forge audioread -y && \
+      audioread=2.1.9 \
+      h5py=3.1.0 \
+      grpcio=1.34.0 \
+      google-auth=1.24.0 \
+      google-auth-oauthlib=0.4.2 \
+      -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Switch to that environment
-SHELL ["conda", "run", "-n", "diffsingerenv", "/bin/bash", "-lc"]
+# 4) Switch into that env
+SHELL ["conda", "run", "-n", "diffsinger­env", "/bin/bash", "-lc"]
 
-# 5) Upgrade pip tooling
+# 5) Upgrade pip tools
 RUN pip install --upgrade pip setuptools wheel
 
-# 6) Install the rest of your Python deps (with build isolation)
-RUN pip install -r /tmp/requirements.txt
+# 6) Install remaining deps without trying to rebuild the conda-installed ones
+RUN pip install --no-deps -r /tmp/requirements.txt
 
-# 7) Copy in your code & set the working directory
+# 7) Copy the code & set workdir
 WORKDIR /workspace
 COPY . /workspace
 
