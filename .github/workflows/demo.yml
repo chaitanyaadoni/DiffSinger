@@ -16,7 +16,7 @@ on:
 
 jobs:
   demo:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       PYTHONUNBUFFERED: '1'
 
@@ -33,10 +33,10 @@ jobs:
             -v "${{ github.workspace }}/outputs":/workspace/outputs \
             diffsinger-demo \
             bash -lc "\
+              set -euo pipefail && \
               mkdir -p checkpoints && \
-              echo 'Downloading checkpoint via HTTP…' && \
-              curl -L \
-                -o checkpoints/${{ inputs.model }}.pth \
+              echo 'Downloading checkpoint…' && \
+              curl -L -o checkpoints/${{ inputs.model }}.pth \
                 https://github.com/openvpi/DiffSinger/releases/download/v0.1/${{ inputs.model }}.pth && \
               python inference/svs/inference.py \
                 --config configs/svs/popcs/svs.yaml \
@@ -49,10 +49,3 @@ jobs:
         with:
           name: demo-waveform
           path: outputs/demo.wav
-
-
-
-
-
-
-
