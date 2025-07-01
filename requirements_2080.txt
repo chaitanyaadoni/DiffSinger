@@ -3,7 +3,6 @@ alignment==1.0.10
 altgraph==0.17
 appdirs==1.4.4
 async-timeout==3.0.1
-audioread==2.1.9
 backcall==0.2.0
 blinker==1.4
 brotlipy==0.7.0
