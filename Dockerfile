@@ -8,11 +8,12 @@ RUN apt-get update && \
       build-essential \
       libsndfile1 \
       libsndfile-dev \
+      libhdf5-dev \
+      pkg-config \
       ffmpeg \
-      libblas-dev \
-      liblapack-dev \
       curl && \
     rm -rf /var/lib/apt/lists/*
+
 
 
 # 2) Copy requirements for layer caching
