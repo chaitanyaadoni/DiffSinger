@@ -1,0 +1,32 @@
+name: diffsingerenv
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - numpy
+  - cython
+  - pip
+  - audioread=2.1.9
+  - h5py=3.1.0
+  - grpcio=1.34.0
+  - google-auth=1.24.0
+  - google-auth-oauthlib=0.4.2
+  - matplotlib=3.3.3
+  - llvmlite
+  - pandas=1.2.0
+  - pillow=8.2.0
+  - cytoolz
+  - ca-certificates
+  - certifi
+  - openssl
+  - pyyaml=5.3.1
+  - numba
+  - scipy
+  - pytorch
+  - torchaudio
+  - torchvision
+  - scikit-image
+  - scikit-learn
+  - cmake
+  - ninja
+prefix: /opt/homebrew/Caskroom/mambaforge/base/envs/diffsingerenv
