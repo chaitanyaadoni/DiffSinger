@@ -1,6 +1,6 @@
 FROM continuumio/miniconda3:latest
 
-# 1) System deps
+# 1) System dependencies
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
@@ -13,7 +13,7 @@ RUN apt-get update && \
 # 2) Copy pip requirements
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env & pre-install heavy C-extensions + pandas
+# 3) Create conda env & pre-install the big C-extensions + Pillow
 RUN conda create -n diffsingerenv \
       python=3.8 \
       numpy \
@@ -27,16 +27,17 @@ RUN conda create -n diffsingerenv \
       matplotlib=3.3.3 \
       llvmlite=0.31.0 \
       pandas=1.2.0 \
+      pillow=8.2.0 \
       -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Use the new env
+# 4) Use that env for the rest of the build
 SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
 
-# 5) Debug: peek at pip list
+# 5) Debug: peek at what pip will see
 RUN head -n20 /tmp/requirements.txt
 
-# 6) Strip out all conda-provided packages (incl. pandas)
+# 6) Strip out the conda-provided packages (incl. pillow)
 RUN sed -i '\
   /^audioread==/d; \
   /^h5py==/d; \
@@ -46,15 +47,16 @@ RUN sed -i '\
   /^matplotlib==/d; \
   /^llvmlite==/d; \
   /^numpy==/d; \
-  /^pandas==/d' \
+  /^pandas==/d; \
+  /^pillow==/d' \
   /tmp/requirements.txt
 
-# 7) Pip-install the remainder (pure-Python only)
-RUN pip install --no-build-isolation --no-deps -r /tmp/requirements.txt
+# 7) Now pip-install only the pure-Python leftovers
+RUN pip install --no-deps -r /tmp/requirements.txt
 
-# 8) Copy code & set workdir
+# 8) Copy your code & set workdir
 WORKDIR /workspace
 COPY . /workspace
 
-# 9) Default entrypoint
+# 9) Default to bash
 ENTRYPOINT ["bash","-lc"]
