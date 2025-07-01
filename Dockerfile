@@ -1,27 +1,18 @@
-# Dockerfile
-
+# 1) System deps
 FROM continuumio/miniconda3:latest
-
-# 1) Install system libraries & curl
 RUN apt-get update && \
     apt-get install -y \
       build-essential \
-      libsndfile1 \
-      libsndfile-dev \
-      libhdf5-dev \
-      libffi-dev \
-      libssl-dev \
-      libfreetype6-dev \
-      libpng-dev \
-      pkg-config \
-      ffmpeg \
-      curl && \
+      libsndfile1 libsndfile-dev \
+      libhdf5-dev libffi-dev libssl-dev \
+      libfreetype6-dev libpng-dev pkg-config \
+      ffmpeg curl && \
     rm -rf /var/lib/apt/lists/*
 
-# 2) Copy pip requirements for caching
+# 2) Copy pip requirements
 COPY requirements_2080.txt /tmp/requirements.txt
 
-# 3) Create conda env & install heavy C‐ext packages from conda-forge
+# 3) Create conda env & install heavy C‐exts via conda-forge
 RUN conda create -n diffsingerenv \
       python=3.8 \
       numpy \
@@ -38,13 +29,13 @@ RUN conda create -n diffsingerenv \
       -c conda-forge -y && \
     conda clean --all --yes
 
-# 4) Use the new conda env for subsequent RUN steps
-SHELL ["conda", "run", "-n", "diffsingerenv", "/bin/bash", "-lc"]
+# 4) Use that env for all following RUNs
+SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
 
-# 5) Debug: show the first 20 lines of the pip requirements
+# 5) Debug: peek at the top of requirements
 RUN head -n 20 /tmp/requirements.txt
 
-# 6) Strip out only the packages now provided by conda
+# 6) Strip out only the conda‐provided packages
 RUN sed -i '\
   /^audioread==/d; \
   /^grpcio==/d; \
@@ -57,12 +48,12 @@ RUN sed -i '\
   /^music21==/d' \
   /tmp/requirements.txt
 
-# 7) Install the remaining (pure-Python) requirements
+# 7) Install the rest (pure‐Python)
 RUN pip install --no-build-isolation --no-deps -r /tmp/requirements.txt
 
-# 8) Copy your code and set working directory
+# 8) Copy your code & set workdir
 WORKDIR /workspace
 COPY . /workspace
 
-# 9) Default to bash
-ENTRYPOINT ["bash", "-lc"]
+# 9) Default entrypoint
+ENTRYPOINT ["bash","-lc"]
