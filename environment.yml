@@ -29,4 +29,6 @@ dependencies:
   - scikit-learn
   - cmake
   - ninja
+  - resampy
+  - pyworld
 prefix: /opt/homebrew/Caskroom/mambaforge/base/envs/diffsingerenv
