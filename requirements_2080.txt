@@ -13,7 +13,6 @@ chardet==4.0.0
 click==7.1.2
 cycler==0.10.0
 Cython==0.29.21
-cytoolz==0.11.0
 decorator==4.4.2
 Distance==0.1.3
 einops==0.3.0
@@ -43,8 +42,6 @@ mido==1.2.9
 music21==5.7.2
 networkx==2.5
 nltk==3.5
-numba==0.48.0
-numpy==1.19.4
 oauth2client==4.1.3
 oauthlib==3.1.0
 olefile==0.46
@@ -56,7 +53,6 @@ pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==8.0.1
 pooch==1.3.0
-praat-parselmouth==0.3.3
 prompt-toolkit==3.0.8
 protobuf==3.13.0
 ptyprocess==0.6.0
@@ -77,16 +73,12 @@ pytorch-lightning==0.7.1
 pytz==2020.5
 PyWavelets==1.1.1
 pyworld==0.2.12
-PyYAML==5.3.1
 regex==2020.11.13
 requests==2.25.1
 requests-oauthlib==1.3.0
 resampy==0.2.2
 Resemblyzer==0.1.1.dev0
 rsa==4.6
-scikit-image==0.16.2
-scikit-learn==0.22.2.post1
-scipy==1.5.4
 six==1.15.0
 SoundFile==0.10.3.post1
 stopit==1.1.1
@@ -96,9 +88,6 @@ tensorboardX==2.1
 TextGrid==1.5
 threadpoolctl==2.1.0
 toolz==0.11.1
-torch==1.6.0
-torchaudio==0.6.0
-torchvision==0.7.0
 tqdm==4.54.1
 traitlets==5.0.5
 typing==3.7.4.3
