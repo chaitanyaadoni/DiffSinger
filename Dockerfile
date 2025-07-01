@@ -7,9 +7,13 @@ RUN apt-get update && \
     apt-get install -y \
       build-essential \
       libsndfile1 \
+      libsndfile-dev \
       ffmpeg \
+      libblas-dev \
+      liblapack-dev \
       curl && \
     rm -rf /var/lib/apt/lists/*
+
 
 # 2) Copy requirements for layer caching
 COPY requirements_2080.txt /tmp/requirements.txt
@@ -31,9 +35,8 @@ SHELL ["conda", "run", "-n", "diffsingerenv", "/bin/bash", "-lc"]
 # 5) Upgrade pip tooling
 RUN pip install --upgrade pip setuptools wheel
 
-# 6) Install the rest of your Python deps (excluding audioread)
-#    --no-deps ensures pip won't try to rebuild audioread
-RUN pip install --no-deps -r /tmp/requirements.txt
+# 6) Install the rest of your Python deps (with build isolation)
+RUN pip install -r /tmp/requirements.txt
 
 # 7) Copy in your code & set the working directory
 WORKDIR /workspace
