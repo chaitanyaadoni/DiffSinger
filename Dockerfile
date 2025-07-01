@@ -20,10 +20,15 @@ SHELL ["conda","run","-n","diffsingerenv","/bin/bash","-lc"]
 # (3) confirm your requirements
 RUN head -n 20 /tmp/requirements.txt
 
-# (4) strip out the C-exts
+# (4) strip out the C-exts + numpy
 RUN sed -i '/^audioread==/d; /^grpcio==/d; \
            /^google-auth==/d; /^google-auth-oauthlib==/d; \
-           /^h5py==/d; /^matplotlib==/d; /^llvmlite==/d' /tmp/requirements.txt
+           /^h5py==/d; /^matplotlib==/d; /^llvmlite==/d; \
+           /^numpy==/d' \
+    /tmp/requirements.txt
+
+# (5) install the rest (pure-Python only)
+RUN pip install --no-build-isolation --no-deps -r /tmp/requirements.txt
 
 # (5) install the rest
 RUN pip install --no-build-isolation --no-deps -r /tmp/requirements.txt
